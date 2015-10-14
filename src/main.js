@@ -1,6 +1,7 @@
 // var _ = require('lodash');
 
 function JSONParser(json) {
+  if (!json) return '""';
 
   var parsed;
   if (json.constructor === String) {
@@ -16,16 +17,6 @@ function JSONParser(json) {
   }
 
 
-  if (json[0] === '"') {
-    parsed = '';
-    for (json.shift(); json[0] !== '"';) {
-      parsed += json.shift();
-    }
-    if (json.shift() !== '"') throw new Error('there is an unclosed quote'); 
-    return parsed;
-  }
-
-
   if (json.slice(0, 4).join('') === 'true') {
     json.splice(0, 4);
     return true;
@@ -36,10 +27,17 @@ function JSONParser(json) {
   }
 
 
+  if (json[0] === '"') {
+    json.shift();
+    for (parsed = ''; json[0] !== '"'; parsed += json.shift());
+    if (json.shift() !== '"') throw new Error('there is an unclosed quote'); 
+    return parsed;
+  }
+
+
   if (json[0] === '[') {
     json.shift();
-    parsed = [];
-    while (json[0] !== ']') {
+    for (parsed = []; json[0] !== ']';) {
       parsed.push(JSONParser(json));
       if (json[0] === ',') json.shift();
     }
@@ -50,13 +48,11 @@ function JSONParser(json) {
 
   if (json[0] === '{') {
     json.shift();
-    var parsed = {};
-    while (json[0] !== '}') {
+    for (parsed = {}; json[0] !== '}'; parsed[key] = value) {
       var key = JSONParser(json);
       if (json[0] === ':') json.shift();
       var value = JSONParser(json);
       if (json[0] === ',') json.shift();
-      parsed[key] = value;
     }
     if (json.shift() !== '}') throw new Error('theres an unclosed square bracket');
     return parsed
