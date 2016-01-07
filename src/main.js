@@ -1,84 +1,73 @@
-// var _ = require('lodash');
+if (typeof module !== 'undefined') {
+  module.exports = JSONParser;
+}
 
 function JSONParser(json) {
   if (!json) return '""';
 
-  var parsed;
-  if (json.constructor === String) {
-    json = json.split('');
-  }
+  var i = 0;
 
-  if (json[0].match(/\d/)) {
-    parsed = '';
-    while (json[0] && json[0].match(/\d/)) {
-      parsed += json.shift();
+  function parse(json) {
+    var parsed;
+
+    if (json[i].match(/\d/)) {
+      parsed = '';
+      while (json[i] && json[i].match(/\d/)) {
+        parsed += json[i++];
+      }
+      return parseInt(parsed, 10);
     }
-    return parseInt(parsed, 10);
-  }
 
-
-  if (json.slice(0, 4).join('') === 'true') {
-    json.splice(0, 4);
-    return true;
-  }
-  if (json.slice(0, 5).join('') === 'false') {
-    json.splice(0, 5);
-    return false;
-  }
-
-
-  if (json[0] === '"') {
-    json.shift();
-    for (parsed = ''; json[0] !== '"'; parsed += json.shift());
-    if (json.shift() !== '"') throw new Error('there is an unclosed quote'); 
-    return parsed;
-  }
-
-
-  if (json[0] === '[') {
-    json.shift();
-    for (parsed = []; json[0] !== ']';) {
-      parsed.push(JSONParser(json));
-      if (json[0] === ',') json.shift();
+    if (json.slice(i, i + 4) === 'true') {
+      i += 4;
+      return true;
     }
-    if (json.shift() !== ']') throw new Error('theres an unclosed square bracket');
-    return parsed;
-  }
-
-
-  if (json[0] === '{') {
-    json.shift();
-    for (parsed = {}; json[0] !== '}'; parsed[key] = value) {
-      var key = JSONParser(json);
-      if (json[0] === ':') json.shift();
-      var value = JSONParser(json);
-      if (json[0] === ',') json.shift();
+    if (json.slice(i, i + 5) === 'false') {
+      i += 5;
+      return false;
     }
-    if (json.shift() !== '}') throw new Error('theres an unclosed square bracket');
-    return parsed
+    if (json.slice(i, i + 4) === 'null') {
+      i += 4;
+      return null;
+    }
+
+    if (json[i] === '"') {
+      i++;
+      parsed = '';
+      for(; json[i] !== '"'; i++) {
+        var c = json[i];
+        if (c === '\\') {
+          parsed += json[++i];
+        } else {
+          parsed += c;
+        }
+      }
+      if (json[i++] !== '"') throw new Error('there is an unclosed quote');
+      return parsed;
+    }
+
+    if (json[i] === '[') {
+      i++;
+      for (parsed = []; json[i] !== ']';) {
+        parsed.push(parse(json));
+        if (json[i] === ',') i++;
+      }
+      if (json[i++] !== ']') throw new Error('theres an unclosed square bracket');
+      return parsed;
+    }
+
+    if (json[i] === '{') {
+      i++;
+      for (parsed = {}; json[i] !== '}'; parsed[key] = value) {
+        var key = parse(json);
+        if (json[i] === ':') i++;
+        var value = parse(json);
+        if (json[i] === ',') i++;
+      }
+      if (json[i++] !== '}') throw new Error('theres an unclosed square bracket');
+      return parsed;
+    }
   }
+
+  return parse(json);
 }
-
-// console.log(JSONParser(JSON.stringify(1)) === 1);
-// console.log(JSONParser(JSON.stringify('test')) === 'test');
-// console.log(JSONParser(JSON.stringify(true)) === true);
-// console.log(_.isEqual(JSONParser(JSON.stringify([])), []));
-// console.log(_.isEqual(JSONParser(JSON.stringify(['a'])), ['a']));
-// console.log(_.isEqual(JSONParser(JSON.stringify([1])), [1]));
-// console.log(_.isEqual(JSONParser(JSON.stringify([true])), [true]));
-// console.log(_.isEqual(JSONParser(JSON.stringify([true,1])), [true,1]));
-// console.log(_.isEqual(JSONParser(JSON.stringify([true,1,'test'])), [true,1,'test']));
-// console.log(_.isEqual(JSONParser(JSON.stringify({})), {}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:true})), {a:true}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({b:1})), {b:1}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({c:'test'})), {c:'test'}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:true,b:1})), {a:true,b:1}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:true,b:1,c:'test'})), {a:true,b:1,c:'test'}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:{}})), {a:{}}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:{b:1}})), {a:{b:1}}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:{b:1,c:2}})), {a:{b:1,c:2}}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:{b:1},c:2})), {a:{b:1},c:2}));
-// console.log(_.isEqual(JSONParser(JSON.stringify({a:{b:{c:2}}})), {a:{b:{c:2}}}));
-// console.log(_.isEqual(JSONParser(JSON.stringify([{a:1}])), [{a:1}]));
-// console.log(_.isEqual(JSONParser(JSON.stringify([{a:1},{b:2}])), [{a:1},{b:2}]));
-// console.log(_.isEqual(JSONParser(JSON.stringify([{a:{c:2}},{b:2}])), [{a:{c:2}},{b:2}]));
