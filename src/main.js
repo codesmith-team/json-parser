@@ -3,11 +3,10 @@ if (typeof module !== 'undefined') {
 }
 
 function JSONParser(json) {
-  if (!json) return '""';
 
   var i = 0;
 
-  function parse(json) {
+  function parse() {
     var parsed;
 
     if (json[i].match(/\d/)) {
@@ -69,5 +68,5 @@ function JSONParser(json) {
     }
   }
 
-  return parse(json);
+  return parse();
 }

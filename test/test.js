@@ -29,7 +29,7 @@ describe('JSON Parser', function() {
       expect(JSONParser(JSON.stringify('{corn}'))).to.eql('{corn}');
     });
 
-    xit('should work with quotes', function() {
+    it('should work with quotes', function() {
       expect(JSONParser(JSON.stringify('i said "wassup"'))).to.eql('i said "wassup"');
     });
   });
@@ -98,7 +98,7 @@ describe('JSON Parser', function() {
     });
   });
 
-  xdescribe('Performace', function() {
+  describe('Performace', function() {
     var obj = {};
     for (var i = 0; i < 100000; i++) {
       obj[i] = [];
